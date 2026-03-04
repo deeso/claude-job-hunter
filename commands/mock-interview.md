@@ -24,12 +24,13 @@ If company and role are missing, ask. If round type is omitted, run the full loo
 
 ## Setup
 
-This command expects a `claude-job-hunter` repo cloned locally. Find it by checking (in order):
-1. `$CLAUDE_JOB_HUNTER_DIR` environment variable
-2. `./claude-job-hunter/` relative to cwd
-3. `~/claude-job-hunter/`
+Resolve paths by checking (in order):
+1. Read `~/.claude/.claude-job-hunter.conf` for `WORK_DIR`, `REPO_DIR`, and component paths
+2. Fall back: `$CLAUDE_JOB_HUNTER_DIR` → `./claude-job-hunter/` → `~/claude-job-hunter/`
 
-If not found, ask the user for the path.
+If the config exists, use its paths (`PROFILE_DIR`, `EVALUATIONS_DIR`, `RESOURCES_DIR`, etc.). Otherwise, use `[claude-job-hunter]/` as both repo and working directory.
+
+If nothing is found, ask the user to run `/setup` first or provide the path.
 
 ## Existing Context
 
