@@ -1,9 +1,11 @@
 # Claude Job Hunter
 
-AI-powered job search toolkit using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) slash commands. Three skills that cover the full job search lifecycle:
+AI-powered job search toolkit using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) slash commands. Five skills that cover the full job search lifecycle:
 
 - **`/should-i-apply`** — Evaluate WHETHER you should apply, with a scorecard, sentiment-driven SWOT, and deep interview prep
 - **`/interview-feedback`** — Debrief after each interview round with signal analysis, performance assessment, and next-round strategy
+- **`/comp-research`** — Build an objective compensation picture: market data, leveling, peer benchmarks, geography adjustments
+- **`/offer-negotiation`** — Evaluate an offer, build negotiation strategy with scripts, and decide whether to accept, counter, or walk
 - **`/player-card`** — Generate a password-protected Cloudflare Worker site that showcases you TO a company (deployed, shareable)
 
 All commands use live web research to produce outputs specific to you and the target company — no generic templates.
@@ -32,6 +34,8 @@ mkdir -p ~/.claude/commands
 ln -sf ~/claude-job-hunter/commands/player-card.md ~/.claude/commands/player-card.md
 ln -sf ~/claude-job-hunter/commands/should-i-apply.md ~/.claude/commands/should-i-apply.md
 ln -sf ~/claude-job-hunter/commands/interview-feedback.md ~/.claude/commands/interview-feedback.md
+ln -sf ~/claude-job-hunter/commands/comp-research.md ~/.claude/commands/comp-research.md
+ln -sf ~/claude-job-hunter/commands/offer-negotiation.md ~/.claude/commands/offer-negotiation.md
 ```
 
 ### 4. Use them
@@ -44,6 +48,12 @@ Open Claude Code and run:
 
 # After each interview round — how did it go?
 /interview-feedback "Anthropic" "Security Engineer" "Jane Smith" "VP of Engineering"
+
+# Know your market value before the offer comes
+/comp-research "Anthropic" "Security Engineer" "Staff"
+
+# Offer in hand — what's the play?
+/offer-negotiation "Anthropic" "Security Engineer"
 
 # Ready to send something impressive — build the card
 /player-card "Anthropic" "Security Engineer" "https://job-url.com"
@@ -99,6 +109,50 @@ Arguments 3 and 4 are optional (the agent will ask during debrief).
 
 Builds a running log across rounds with cross-round pattern analysis.
 
+### `/comp-research`
+
+**Purpose:** Build an objective compensation picture before an offer arrives so you negotiate from data, not feelings.
+
+**Usage:** `/comp-research "company" "role" "level"`
+
+Argument 3 is optional (the agent determines likely level from your profile).
+
+**Researches:**
+- **Market data** — levels.fyi, Glassdoor, H1B/LCA filings, job posting salary ranges
+- **Company-specific** — comp philosophy, pay bands, equity structure (options vs RSUs), benefits
+- **Peer benchmarks** — 5-8 companies competing for the same talent with comp comparison table
+- **Geography** — cost of living adjustments, remote pay policies, state tax implications
+- **Leveling** — maps your experience to the company's framework, flags down-leveling risk
+
+**Produces:** `COMP_RESEARCH.md` in the evaluation directory:
+- Compensation bands: below market / market rate / above market / stretch target
+- Component breakdown: base, equity, signing, bonus, benefits with specific ranges
+- Current comp vs. market comparison table
+- Company negotiation intelligence (how they negotiate, flexibility patterns)
+
+### `/offer-negotiation`
+
+**Purpose:** You have an offer. Decide whether to accept, negotiate, or walk — then build the actual negotiation with scripts and counter-offer language.
+
+**Usage:** `/offer-negotiation "company" "role"`
+
+**How it works:** The agent walks you through:
+- Capturing every offer component (base, equity, signing, bonus, benefits, clawback, non-compete)
+- **Emotional check-in** — do you actually want this job? What's your alternative? What makes you say yes or walk away?
+- Offer analysis against market data, current comp, and other offers
+- Leveling check (were you down-leveled?)
+- Hidden comp factors (equity tax treatment, exercise windows, clawback terms)
+
+**Produces:** `NEGOTIATION_STRATEGY.md` in the evaluation directory:
+- **Verdict:** Accept / Negotiate / Walk Away with reasoning
+- **Priority-ordered negotiation targets** with justification and fallback positions
+- **Ready-to-send counter-offer email** with specific numbers and framing
+- **Phone script** and **pushback responses** for each ask
+- **Decision framework** — weighted scorecard reflecting YOUR priorities
+- **Scenario analysis** — accept now / negotiate-win / negotiate-hold / walk away
+
+Reads prior skills' outputs (`COMP_RESEARCH.md`, `INTERVIEW_LOG.md`, `SCORECARD.md`) to inform strategy.
+
 ### `/player-card`
 
 **Purpose:** Generate a deployable site that showcases you to a specific company.
@@ -120,7 +174,9 @@ claude-job-hunter/
 ├── commands/                        # Claude Code slash commands
 │   ├── player-card.md               # /player-card command
 │   ├── should-i-apply.md            # /should-i-apply command
-│   └── interview-feedback.md        # /interview-feedback command
+│   ├── interview-feedback.md        # /interview-feedback command
+│   ├── comp-research.md             # /comp-research command
+│   └── offer-negotiation.md         # /offer-negotiation command
 ├── profile/
 │   └── candidate-profile.md         # Your profile (fill this in)
 ├── resources/
@@ -142,7 +198,9 @@ The commands cover the full job search lifecycle:
 
 1. **`/should-i-apply`** — Pre-application: research, SWOT analysis, interview prep
 2. **`/interview-feedback`** — During process: debrief each round, read signals, prep for next
-3. **`/player-card`** — Outreach: deploy a personalized showcase site
+3. **`/comp-research`** — Pre-offer: build objective comp picture from market data
+4. **`/offer-negotiation`** — Offer stage: evaluate, strategize, negotiate with scripts
+5. **`/player-card`** — Anytime: deploy a personalized showcase site
 
 Each command follows a multi-phase workflow with user confirmation between phases. Outputs accumulate in the same `evaluations/[company]-[role]/` directory, building a complete picture over time.
 
@@ -152,10 +210,11 @@ Each command follows a multi-phase workflow with user confirmation between phase
 - **Use the evidence directory.** The more context you give (cover letters, project docs, publications), the stronger the evidence mapping in scorecards and interview prep.
 - **Review between phases.** Both commands pause for confirmation. Add context the AI might have missed.
 - **Debrief every round.** Run `/interview-feedback` after each interview while details are fresh. The running log across rounds reveals patterns.
-- **Full lifecycle.** `/should-i-apply` → `/interview-feedback` (per round) → `/player-card` if you want to send something impressive.
+- **Run comp research early.** `/comp-research` before the offer means you negotiate from data, not gut feelings. The research feeds directly into `/offer-negotiation`.
+- **Full lifecycle.** `/should-i-apply` → `/interview-feedback` (per round) → `/comp-research` → `/offer-negotiation` → `/player-card` if you want to send something impressive.
 
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - For `/player-card` deployment: Cloudflare account, Wrangler CLI, custom domain, Resend API key
-- For `/should-i-apply` and `/interview-feedback`: no infrastructure needed — outputs are local markdown files
+- For all other commands: no infrastructure needed — outputs are local markdown files
