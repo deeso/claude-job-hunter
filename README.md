@@ -22,10 +22,10 @@ git clone https://github.com/deeso/claude-job-hunter.git ~/claude-job-hunter
 
 ### 2. Build your candidate profile
 
-Run `/build-profile` to generate your profile automatically from your resume and evidence:
+Run `/build-profile` to generate your profile automatically from your resume, GitHub, and evidence:
 
 ```
-/build-profile "~/resume.pdf" "~/evidence/" "https://linkedin.com/in/your-profile"
+/build-profile "~/resume.pdf" "~/evidence/" "https://linkedin.com/in/your-profile" "your-github-username"
 ```
 
 Or edit `profile/candidate-profile.md` manually. This is the core data source all commands use. The more honest and specific you are (especially the "Honest Considerations" section), the better the outputs.
@@ -53,8 +53,8 @@ ln -sf ~/claude-job-hunter/commands/build-profile.md ~/.claude/commands/build-pr
 Open Claude Code and run:
 
 ```
-# First time? Build your profile from your resume
-/build-profile "~/resume.pdf" "~/evidence/" "https://linkedin.com/in/you"
+# First time? Build your profile from your resume + GitHub
+/build-profile "~/resume.pdf" "~/evidence/" "https://linkedin.com/in/you" "your-github"
 
 # Before applying — should I bother?
 /should-i-apply "~/resume.pdf" "Anthropic" "Security Engineer" "https://job-url.com" "~/evidence/"
@@ -81,26 +81,27 @@ Open Claude Code and run:
 
 **Purpose:** Generate your candidate profile automatically instead of filling in the template by hand. The agent extracts, researches, and synthesizes — you validate and add the human context.
 
-**Usage:** `/build-profile "resume-path" "evidence-dir" "linkedin-url"`
+**Usage:** `/build-profile "resume-path" "evidence-dir" "linkedin-url" "github-usernames"`
 
-Arguments 2 and 3 are optional.
+Arguments 2-4 are optional. Multiple GitHub usernames can be comma-separated (e.g., personal + work accounts).
 
 **How it works:**
 1. **Ingests all materials** — reads resume, evidence directory (cover letters, publications, project docs, LinkedIn export, recommendations, performance reviews), catalogs what it found
-2. **Deep web research** — searches for your public presence:
+2. **GitHub deep analysis** — uses `gh` CLI to analyze repos, languages, activity, stars, contribution patterns. Categorizes repos into showcase (impressive), evidence (backs resume claims), and contributions (open source engagement). Cross-references technical skills claims with actual code.
+3. **Deep web research** — searches for your public presence:
    - Google Scholar (papers, citations, h-index)
    - USPTO/Google Patents (full patent details)
-   - GitHub (repos, languages, activity, open source)
+   - npm/PyPI/crates.io packages authored
    - Conference talks, blog posts, press mentions
    - LinkedIn, Twitter/X, personal website
-3. **Candidate interview** — asks the things only you know:
+4. **Candidate interview** — asks the things only you know:
    - Career narrative and why you made each move
    - Biggest impact stories with quantified evidence
    - Top technical skills (what you're truly deep in vs. what's on the resume)
    - **The honest section** — real weaknesses, what drains you, deal-breakers, what a critical reference would say, tenure risks
    - Career goals and what you're optimizing for
-4. **Synthesizes the profile** — builds `candidate-profile.md` in the format all other skills expect
-5. **Review** — walks through each section for your approval
+5. **Synthesizes the profile** — builds `candidate-profile.md` with GitHub showcase repos, verified publications, and all evidence
+6. **Review** — walks through each section for your approval
 
 Supports **update mode**: if a profile exists, merges new information and re-runs web research to catch recent publications, patents, or mentions.
 

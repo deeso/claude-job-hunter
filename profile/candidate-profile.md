@@ -72,6 +72,29 @@ List 5-7 quantified achievements. Each should have context for WHY it matters, n
 
 (Repeat for each relevant role)
 
+## GitHub & Open Source
+
+- **GitHub:** [github.com/your-username](https://github.com/your-username)
+- **Additional accounts:** (if you have separate work/personal accounts)
+
+### Showcase Repos
+
+| Repo | What It Does | Languages | Stars | Why It Matters |
+|------|-------------|-----------|-------|---------------|
+| [repo-name](link) | One-line description | Python, Go | X | Demonstrates [skill/domain] |
+| ... | ... | ... | ... | ... |
+
+### Open Source Contributions
+- Contributions to external projects (PRs, issues, maintainer roles)
+
+### Package Registry
+- npm, PyPI, crates.io packages authored (if any)
+
+### GitHub Summary
+- Primary languages: [from actual repo analysis]
+- Activity level: [active / moderate / archival]
+- Focus areas: [security tooling, infrastructure, data, etc.]
+
 ## Patents
 1. **Patent title** (Patent number)
 

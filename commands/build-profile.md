@@ -4,12 +4,13 @@ Automatically builds a comprehensive `candidate-profile.md` from your resume, we
 
 ## Inputs
 
-**Usage:** `/build-profile "resume-path" "evidence-dir" "linkedin-url"`
+**Usage:** `/build-profile "resume-path" "evidence-dir" "linkedin-url" "github-usernames"`
 
-Parse `$ARGUMENTS` as up to three quoted strings:
+Parse `$ARGUMENTS` as up to four quoted strings:
 - **First quoted string** (required) — Path to resume file (PDF or markdown)
 - **Second quoted string** (optional) — Path to directory containing supporting evidence
 - **Third quoted string** (optional) — LinkedIn profile URL
+- **Fourth quoted string** (optional) — GitHub username(s), comma-separated (e.g., `"deeso"` or `"deeso,deeso-sec"`)
 
 If resume path is missing, ask. Everything else can be gathered during the process.
 
@@ -24,6 +25,8 @@ If resume path is missing, ask. Everything else can be gathered during the proce
 - Blog posts
 - Certifications
 - Performance reviews (if willing to share — these are gold for impact metrics)
+
+**GitHub repos:** If GitHub username(s) provided, the agent uses `gh` CLI to deeply analyze repos, contributions, and activity. If not provided, the agent will search for GitHub profiles during web research and ask.
 
 ## Setup
 
@@ -73,7 +76,44 @@ If provided, list and read every file. For each, extract:
 - **Recommendation letters:** What others say about them (themes, patterns)
 - **Performance reviews:** Impact metrics, feedback themes, growth areas
 
-#### 1c. Catalog What You Have
+#### 1c. Analyze GitHub Repos
+
+If GitHub username(s) were provided (4th arg) or found in the resume/evidence, do a deep analysis using `gh` CLI and WebFetch.
+
+**For each GitHub username, run:**
+```
+gh api users/[USERNAME] --jq '{name, bio, company, location, public_repos, followers}'
+gh api users/[USERNAME]/repos --paginate --jq '.[] | {name, description, language, stargazers_count, forks_count, updated_at, topics, homepage}' | sort by stars
+gh api users/[USERNAME]/events --per-page=100 --jq '.[].type' | sort | uniq -c | sort -rn
+```
+
+**For each notable repo (starred, pinned, or substantial):**
+```
+gh api repos/[USERNAME]/[REPO] --jq '{description, language, stargazers_count, forks_count, topics, license, created_at, pushed_at}'
+gh api repos/[USERNAME]/[REPO]/languages
+gh api repos/[USERNAME]/[REPO]/contributors --per-page=5 --jq '.[].login'
+```
+
+Also read the repo README if it exists (via WebFetch on the GitHub URL) to understand what was built, why, and how.
+
+**Extract from GitHub analysis:**
+- **Technical signal:** Primary languages, frameworks, and tools actually used in code (not just listed on resume)
+- **Builder signal:** Original projects vs. forks, frequency of commits, recency of activity
+- **Scope signal:** Solo projects vs. collaborations, project complexity, documentation quality
+- **Domain signal:** What problem domains do the repos cover? Security tooling, data pipelines, web apps, research tools, etc.
+- **Open source signal:** Contributions to other projects (PRs, issues), community engagement
+- **Craft signal:** Code quality indicators — tests, CI/CD, documentation, architecture patterns
+- **Notable repos:** Projects worth highlighting in the profile (starred, unique, technically impressive, or relevant to target roles)
+
+**Categorize repos:**
+1. **Showcase repos** — impressive, well-documented, demonstrate real skills (highlight in profile)
+2. **Evidence repos** — support resume claims (e.g., "I built security tooling" backed by actual security tools)
+3. **Learning/exploration repos** — show curiosity and growth but not production-grade
+4. **Forks and contributions** — show open source engagement
+
+If the candidate has multiple GitHub accounts (e.g., personal + work), analyze each and note the distinction.
+
+#### 1d. Catalog What You Have
 
 Present a summary of all materials ingested:
 ```
@@ -82,6 +122,10 @@ Materials found:
 - Evidence directory: [N files]
   - [filename]: [type — cover letter / publication / etc.] — [brief summary]
   - ...
+- GitHub: [username(s)]
+  - [N] public repos, [N] stars total, primary languages: [list]
+  - Showcase repos: [list of notable repos with brief descriptions]
+  - Recent activity: [last commit date, activity level]
 - LinkedIn URL: [if provided]
 ```
 
@@ -130,11 +174,16 @@ For each patent found:
 
 #### 2c. Open Source & Technical Footprint
 
-- [ ] GitHub repos — what they build, languages, activity level
-- [ ] npm, PyPI, or other package registry packages authored
+If GitHub was not analyzed in Phase 1c (no username provided), search for it now:
+- [ ] GitHub profile search by name + company or email
+- [ ] If found, run the full Phase 1c analysis
+
+Regardless:
+- [ ] npm, PyPI, crates.io, or other package registry packages authored (search by name and GitHub username)
 - [ ] Stack Overflow profile and top answers (if findable)
 - [ ] Technical blog posts (personal or company engineering blog)
-- [ ] Open source contributions to major projects
+- [ ] Open source contributions to major projects (search GitHub for PRs by username)
+- [ ] DevPost, Kaggle, or other competition profiles
 
 #### 2d. Professional Reputation
 
@@ -238,6 +287,7 @@ Now build the `candidate-profile.md` following the template structure. Every sec
 - Each skill has specific tools, technologies, and scale indicators
 - Distinguish between "deep expertise" and "working knowledge"
 - Include leadership and business skills alongside technical
+- Cross-reference with GitHub repos: if they claim Python expertise, which repos demonstrate it?
 
 #### F. Career History
 - For each role: title, dates, company, one-line context
@@ -256,17 +306,29 @@ Now build the `candidate-profile.md` following the template structure. Every sec
 - Brief description of the contribution
 - Citation count if significant
 
-#### I. Certifications
+#### I. GitHub & Open Source
+- GitHub username(s) with profile links
+- Showcase repos: 3-5 most impressive or relevant projects, each with:
+  - Repo name and link
+  - What it does (one line)
+  - Languages/technologies
+  - Stars/forks (if notable)
+  - Why it matters (what it demonstrates about the candidate)
+- Open source contributions to external projects (if any)
+- Overall GitHub signal summary: activity level, languages, domain focus
+- Package registry packages authored (npm, PyPI, etc.)
+
+#### J. Certifications
 - Name, issuing body, date if relevant
 
-#### J. Honest Considerations
+#### K. Honest Considerations
 - This is the most important section for downstream skills
 - Draw from Phase 3d answers
 - Frame each consideration with the real context AND how the candidate thinks about it
 - These get used in SWOT analysis, interview prep, and offer negotiation
 - 5-7 items covering: overqualification risks, tenure patterns, autonomy needs, culture requirements, growth expectations, communication style, comp expectations
 
-#### K. Resume PDFs
+#### L. Resume PDFs
 - Reference the resume file path provided
 
 ---
@@ -327,6 +389,8 @@ Before finishing, verify:
 - [ ] Honest Considerations section has 5-7 substantive items (not fluffy weaknesses)
 - [ ] Skills listed are things the candidate would be comfortable being tested on
 - [ ] Headline is specific and compelling (not generic)
-- [ ] Web research findings are incorporated (GitHub, publications, talks, etc.)
+- [ ] Web research findings are incorporated (publications, talks, etc.)
+- [ ] GitHub repos are analyzed and showcase repos are included with links
+- [ ] Technical skills claims are cross-referenced with GitHub evidence where possible
 - [ ] Nothing is included that the candidate asked to exclude
 - [ ] Profile reads as authentic, not inflated — the tone matches how the candidate actually speaks
