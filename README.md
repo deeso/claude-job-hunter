@@ -1,11 +1,12 @@
 # Claude Job Hunter
 
-AI-powered job search toolkit using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) slash commands. Two skills that turn your resume into targeted outputs:
+AI-powered job search toolkit using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) slash commands. Three skills that cover the full job search lifecycle:
 
-- **`/player-card`** — Generate a password-protected Cloudflare Worker site that showcases you TO a company (deployed, shareable)
 - **`/should-i-apply`** — Evaluate WHETHER you should apply, with a scorecard, sentiment-driven SWOT, and deep interview prep
+- **`/interview-feedback`** — Debrief after each interview round with signal analysis, performance assessment, and next-round strategy
+- **`/player-card`** — Generate a password-protected Cloudflare Worker site that showcases you TO a company (deployed, shareable)
 
-Both commands use live web research to produce outputs specific to you and the target company — no generic templates.
+All commands use live web research to produce outputs specific to you and the target company — no generic templates.
 
 ## Quick Start
 
@@ -30,6 +31,7 @@ mkdir -p ~/.claude/commands
 # Symlink the commands (recommended — stays in sync with repo updates)
 ln -sf ~/claude-job-hunter/commands/player-card.md ~/.claude/commands/player-card.md
 ln -sf ~/claude-job-hunter/commands/should-i-apply.md ~/.claude/commands/should-i-apply.md
+ln -sf ~/claude-job-hunter/commands/interview-feedback.md ~/.claude/commands/interview-feedback.md
 ```
 
 ### 4. Use them
@@ -37,8 +39,13 @@ ln -sf ~/claude-job-hunter/commands/should-i-apply.md ~/.claude/commands/should-
 Open Claude Code and run:
 
 ```
+# Before applying — should I bother?
 /should-i-apply "~/resume.pdf" "Anthropic" "Security Engineer" "https://job-url.com" "~/evidence/"
 
+# After each interview round — how did it go?
+/interview-feedback "Anthropic" "Security Engineer" "Jane Smith" "VP of Engineering"
+
+# Ready to send something impressive — build the card
 /player-card "Anthropic" "Security Engineer" "https://job-url.com"
 ```
 
@@ -67,6 +74,31 @@ evaluations/[company]-[role-slug]/
 - "Questions to ask them" with what good and bad answers look like
 - Culture & values alignment map between you and the company
 
+### `/interview-feedback`
+
+**Purpose:** Structured post-interview debrief that reads the signals and prepares you for the next round.
+
+**Usage:** `/interview-feedback "company" "role" "interviewer-name" "interviewer-title"`
+
+Arguments 3 and 4 are optional (the agent will ask during debrief).
+
+**How it works:** The agent asks you structured questions about:
+- What questions the interviewer asked and how you answered
+- Interviewer behavior — engagement, body language, selling signals
+- Red flags and green flags you observed
+- What you learned about the role, team, and culture
+- How the interview ended and what next steps were discussed
+
+**Produces:** Appends to `INTERVIEW_LOG.md` in the evaluation directory:
+- **Signal analysis** — reads interviewer behavior to assess likelihood of advancing
+- **Performance assessment** — rates each answer with "what a stronger answer looks like" for weak spots
+- **Preparation gap analysis** — compares against `INTERVIEW_PREP.md` predictions if available
+- **Culture & fit updates** — revises SWOT based on new information from the interview
+- **Next round strategy** — concrete topics, stories, and questions to prepare
+- **Thank-you note draft** — personalized to the conversation, not generic
+
+Builds a running log across rounds with cross-round pattern analysis.
+
 ### `/player-card`
 
 **Purpose:** Generate a deployable site that showcases you to a specific company.
@@ -87,7 +119,8 @@ evaluations/[company]-[role-slug]/
 claude-job-hunter/
 ├── commands/                        # Claude Code slash commands
 │   ├── player-card.md               # /player-card command
-│   └── should-i-apply.md            # /should-i-apply command
+│   ├── should-i-apply.md            # /should-i-apply command
+│   └── interview-feedback.md        # /interview-feedback command
 ├── profile/
 │   └── candidate-profile.md         # Your profile (fill this in)
 ├── resources/
@@ -105,23 +138,24 @@ claude-job-hunter/
 
 ## How It Works
 
-Both commands follow a multi-phase workflow with user confirmation between phases:
+The commands cover the full job search lifecycle:
 
-1. **Profile ingestion** — reads your resume, profile, and any supporting evidence
-2. **JD analysis** — fetches and parses the job description
-3. **Live research** — uses WebSearch/WebFetch to research the company, leadership, culture, Glassdoor reviews, engineering blog, etc.
-4. **Analysis** — crosses your profile against the company/role to produce personalized outputs
-5. **Output generation** — writes structured markdown (should-i-apply) or a deployable project (player-card)
+1. **`/should-i-apply`** — Pre-application: research, SWOT analysis, interview prep
+2. **`/interview-feedback`** — During process: debrief each round, read signals, prep for next
+3. **`/player-card`** — Outreach: deploy a personalized showcase site
+
+Each command follows a multi-phase workflow with user confirmation between phases. Outputs accumulate in the same `evaluations/[company]-[role]/` directory, building a complete picture over time.
 
 ## Tips
 
 - **Be honest in your candidate profile.** The "Honest Considerations" section makes SWOT analysis genuinely useful. Generic strengths produce generic outputs.
 - **Use the evidence directory.** The more context you give (cover letters, project docs, publications), the stronger the evidence mapping in scorecards and interview prep.
 - **Review between phases.** Both commands pause for confirmation. Add context the AI might have missed.
-- **Iterate.** Run `/should-i-apply` first to decide if a role is worth it, then `/player-card` to create the deliverable.
+- **Debrief every round.** Run `/interview-feedback` after each interview while details are fresh. The running log across rounds reveals patterns.
+- **Full lifecycle.** `/should-i-apply` → `/interview-feedback` (per round) → `/player-card` if you want to send something impressive.
 
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 - For `/player-card` deployment: Cloudflare account, Wrangler CLI, custom domain, Resend API key
-- For `/should-i-apply`: no infrastructure needed — outputs are local markdown files
+- For `/should-i-apply` and `/interview-feedback`: no infrastructure needed — outputs are local markdown files
