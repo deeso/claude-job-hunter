@@ -11,7 +11,7 @@ Parse `$ARGUMENTS` as up to three quoted strings:
 - **Second quoted string** (optional) — Comma-separated role keyword filters (e.g., `"security, platform, infrastructure"`)
 - **Third quoted string** (optional) — Profile name (e.g., `"default"`, `"security"`). See Profile Resolution below.
 
-If no arguments are provided, fall back to the watchlist file. If no watchlist exists, ask the user interactively for companies and keywords.
+If no arguments are provided, search all companies in the watchlist file. If no watchlist exists, create one from the template and walk the user through adding their first companies before proceeding (do NOT ask for companies as a one-off prompt — the watchlist is the persistent source of truth).
 
 ## Setup
 
@@ -57,12 +57,14 @@ Execute these phases in order. Present findings to the user after each phase for
    - If no profile exists, tell the user to run `/build-profile` first
 3. Read the watchlist at `[WORK_DIR]/WATCHLIST.md`
    - If no watchlist exists, copy the template from `[REPO_DIR]/resources/watchlist-template.md` to `[WORK_DIR]/WATCHLIST.md`
-   - Tell the user a watchlist was created and offer to configure it now or proceed with arguments
+   - Walk the user through adding at least one company to the watchlist (name, optional board token and platform)
+   - Write their entries into the watchlist file, then continue
 4. Read the search log at `[WORK_DIR]/JOB_SEARCH_LOG.md` (if it exists) for deduplication
 5. Build the search plan by merging:
-   - Companies from arguments (first quoted string, comma-separated)
+   - Companies from arguments (first quoted string, comma-separated) — if provided
    - Companies from watchlist `## Companies` section
    - Deduplicate company list
+   - If the merged list is still empty, tell the user: "No companies to search. Add companies to your watchlist at `[WORK_DIR]/WATCHLIST.md` or pass them as the first argument." Then stop.
 6. Build filter set by merging:
    - Role keywords from arguments (second quoted string, comma-separated)
    - Global filters from watchlist `## Search Filters` section
