@@ -10,7 +10,7 @@ Parse `$ARGUMENTS` as up to four quoted strings:
 - **First quoted string** (required) — Path to resume file (PDF or markdown)
 - **Second quoted string** (optional) — Path to directory containing supporting evidence
 - **Third quoted string** (optional) — LinkedIn profile URL
-- **Fourth quoted string** (optional) — GitHub username(s), comma-separated (e.g., `"deeso"` or `"deeso,deeso-sec"`)
+- **Fourth quoted string** (optional) — GitHub username(s), comma-separated (e.g., `"octocat"` or `"octocat,octocat-work"`)
 
 If resume path is missing, ask. Everything else can be gathered during the process.
 

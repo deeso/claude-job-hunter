@@ -1,6 +1,6 @@
 # Player Card Technical Architecture
 
-Reference implementation: `/home/dso/playercards/openrouter-2026/`
+Reference implementation: `[claude-job-hunter]/reference/` (if present)
 
 ## System Overview
 
@@ -38,12 +38,12 @@ Each player card is a Cloudflare Worker that serves a password-protected, single
 
 ### wrangler.toml
 ```toml
-name = "adam-pridgen-playercard-[company]"
+name = "[candidate]-playercard-[company]"
 main = "dist/worker.js"
 compatibility_date = "2024-01-01"
 
 routes = [
-  { pattern = "[company].sp98.org/player-card*", zone_name = "sp98.org" }
+  { pattern = "[company].[your-domain]/player-card*", zone_name = "[your-domain]" }
 ]
 ```
 

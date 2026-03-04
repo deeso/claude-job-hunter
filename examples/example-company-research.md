@@ -1,9 +1,9 @@
-# Company Research: OpenRouter
+# Company Research: Acme AI
 
 *Research completed March 2026*
 
 ## Company Basics
-- **Name:** OpenRouter
+- **Name:** Acme AI
 - **Product:** AI gateway / unified API for LLM providers
 - **Model:** Usage-based pricing, developer-focused API
 - **Stage:** Startup, growing rapidly in AI infrastructure space
@@ -19,7 +19,7 @@
 ## Technical Infrastructure
 - API gateway handling high-volume LLM inference requests
 - Multi-provider integration layer
-- Likely using Cloudflare Workers or similar edge compute
+- Edge compute for low-latency routing
 - Real-time usage tracking and billing
 - Rate limiting and API key management
 
@@ -47,8 +47,8 @@
 - Fast-moving, ship-oriented
 - AI-native team
 
-## Why Security Matters for OpenRouter
-1. **Trust layer:** Enterprise customers trust OpenRouter with their API keys and data
+## Why Security Matters for Acme AI
+1. **Trust layer:** Enterprise customers trust the platform with their API keys and data
 2. **Multi-provider risk:** Security posture depends on weakest provider integration
 3. **Abuse prevention:** Usage-based billing makes abuse detection existential
 4. **Enterprise sales:** SOC2/ISO required to close enterprise deals

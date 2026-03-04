@@ -35,8 +35,8 @@ Read these files before starting:
 - **Interview research checklist:** `[claude-job-hunter]/resources/interview-research-checklist.md`
 
 For examples of completed research:
-- `[claude-job-hunter]/examples/openrouter-research.md`
-- `[claude-job-hunter]/examples/openrouter-fit-analysis.md`
+- `[claude-job-hunter]/examples/example-company-research.md`
+- `[claude-job-hunter]/examples/example-fit-analysis.md`
 
 ## Output Directory
 

@@ -38,8 +38,8 @@ Read these files before starting:
 - **Research checklist:** `[claude-job-hunter]/resources/research-checklist.md`
 
 For examples of completed work:
-- `[claude-job-hunter]/examples/openrouter-research.md`
-- `[claude-job-hunter]/examples/openrouter-fit-analysis.md`
+- `[claude-job-hunter]/examples/example-company-research.md`
+- `[claude-job-hunter]/examples/example-fit-analysis.md`
 
 ## Reference Implementation
 

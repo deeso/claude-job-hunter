@@ -254,8 +254,8 @@ claude-job-hunter/
 │   ├── research-checklist.md        # Company research prompts
 │   └── interview-research-checklist.md  # Leadership & culture research
 ├── examples/
-│   ├── openrouter-research.md       # Example company research output
-│   └── openrouter-fit-analysis.md   # Example fit analysis output
+│   ├── example-company-research.md       # Example company research
+│   └── example-fit-analysis.md   # Example fit analysis
 ├── evaluations/                     # /should-i-apply outputs go here
 │   └── [company]-[role]/
 └── cards/                           # /player-card outputs go here

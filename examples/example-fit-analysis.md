@@ -1,36 +1,36 @@
-# Fit Analysis: Adam Pridgen → OpenRouter Security Engineer
+# Fit Analysis: [Candidate] → Acme AI Security Engineer
 
-*Match Score: 97%*
+*Match Score: 94%*
 
 ## Match Score Justification
-- 10/10 core JD requirements met at 95-100%
-- Direct experience as first security hire at AI company (You.com)
+- 10/10 core JD requirements met at 90-100%
+- Direct experience as first security hire at a comparable AI company
 - Exact domain overlap: AI platform, API security, compliance for enterprise sales
-- Technical depth matches: Python, Terraform, Cloudflare Workers, AWS
+- Technical depth matches: Python, Terraform, cloud infrastructure, AWS
 - Only minor gap: specific inference platform experience (quickly rampable)
 
 ## SWOT Analysis
 
 ### Strengths — "Why I'm Built for Startups"
-- Done this exact role: First security hire at You.com (AI, Series B)
-- Ships code: Python, Terraform, Cloudflare Workers — doesn't wait for engineering
-- Revenue enabler: Security posture directly closed $50M+ in enterprise deals
-- Scrappy operator: Outsourced SOC to Expel, automated compliance — maximize impact per dollar
+- Done this exact role: First security hire at an AI company (Series B stage)
+- Ships code: Python, Terraform, infrastructure automation — doesn't wait for engineering
+- Revenue enabler: Security posture directly unlocked enterprise deals
+- Scrappy operator: Outsourced SOC, automated compliance — maximize impact per dollar
 - AI-native: Understands LLM security, prompt injection, model trust boundaries
-- Fast learner: PhD + constant context switching across startups, Fortune 50, consulting
+- Fast learner: Advanced degree + constant context switching across startups, Fortune 50, consulting
 - Extreme owner: Fixes problems, then asks for resources — not the reverse
 
 ### Opportunities — "What I Bring Beyond the JD"
-- Hire your security team: Recruited and built 3 high-performing security teams
-- Scale to CISO: Can grow into Head of Security as OpenRouter scales
+- Hire your security team: Recruited and built multiple high-performing security teams
+- Scale to CISO: Can grow into Head of Security as the company scales
 - Enterprise sales support: Joins customer calls and closes security objections
-- Vendor negotiation: Managed $1M+ security tooling budget, knows startup deals
+- Vendor negotiation: Managed security tooling budget, knows startup deals
 - Board-ready reporting: Translates security posture to investor/board metrics
 - HIPAA for healthcare AI: If expanding to healthcare, already has experience
 
 ### Weaknesses — "Honest Considerations"
-- Overqualified on paper: Current Sr. Director — but builder who wants hard problems
-- Short Amazon tenure: Not a culture fit. Doesn't stay where can't have impact
+- Overqualified on paper: Current senior leadership title — but builder who wants hard problems
+- Short tenure at a prior role: Not a culture fit. Doesn't stay where can't have impact
 - High autonomy need: Thrives with trust and clear goals. Micromanagement is a mismatch
 - Culture matters: Values transparency and psychological safety. Will ask about this
 
@@ -44,36 +44,36 @@
 
 | Requirement | Evidence | Score |
 |-------------|----------|-------|
-| 3-5+ years security | 20+ years: Cisco CSIRT, Amazon, Roblox, You.com, Praetorian, Veracode | 100% |
-| Cloud security | AWS (EKS, ECR, Redis), Terraform, IaC, K8s at scale | 100% |
+| 3-5+ years security | 15+ years across incident response, threat intel, platform security, consulting | 100% |
+| Cloud security | AWS (EKS, ECR, Redis), Terraform, IaC, Kubernetes at scale | 100% |
 | Compliance | Built 0-to-1: SOC2 II, ISO 27001, GDPR, HIPAA | 100% |
-| SIEM platform | Splunk (Cisco, AmEx), Coralogix, built automations | 95% |
+| SIEM platform | Multiple SIEM platforms, built automations | 95% |
 | Vuln scanners | OSS + commercial, automated scanning programs | 95% |
-| AI-forward | Head of Security at AI company, PhD with AI/ML | 100% |
-| Startup builder | 0-to-1 at You.com, Roblox, consulting startups | 100% |
-| Cross-functional | 20+ stakeholders, exec comms | 100% |
-| Pen testing/IR | Veracode, Praetorian, CSIRT | 100% |
-| Python automation | Extensive: fiery-snap, security automation, APIs | 100% |
-| Healthcare/BAA (bonus) | HIPAA experience | 90% |
+| AI-forward | Head of Security at AI company, advanced research background | 100% |
+| Startup builder | 0-to-1 at multiple startups, consulting experience | 100% |
+| Cross-functional | 20+ stakeholders, exec communications | 100% |
+| Pen testing/IR | Consulting background, CSIRT experience | 100% |
+| Python automation | Extensive: security automation, APIs, tooling frameworks | 100% |
+| Healthcare/BAA (bonus) | HIPAA experience at prior role | 90% |
 
 ## Company-Specific Value Propositions
 
 ### "I Understand Your Business"
-- AI gateway = trust layer: Enterprise customers need to trust OpenRouter with API keys, prompts, data
+- AI gateway = trust layer: Enterprise customers need to trust the platform with API keys, prompts, data
 - Multi-provider complexity: Security posture depends on weakest model provider integration
-- Usage-based billing: Abuse detection is existential — built bot defense saving $4M+ runway
+- Usage-based billing: Abuse detection is existential — built bot defense saving millions in runway
 - Developer-first product: Security can't slow down the API or DX
 
 ### Relevant Experience
-- You.com: AI search platform, 1B+ queries, similar enterprise buyer profile
-- Roblox: Platform security at scale, trust & safety, abuse prevention
-- Cloudflare Workers: Built production services on likely infrastructure
+- Prior AI company: AI platform, 1B+ queries, similar enterprise buyer profile
+- Gaming platform: Platform security at scale, trust & safety, abuse prevention
+- Edge compute: Built production services on similar infrastructure
 - API security: Rate limiting, auth, key management, audit logging
 
 ## Success Metrics
 
 ### 30-Day
-- Complete security landscape assessment of OpenRouter infrastructure
+- Complete security landscape assessment of infrastructure
 - Identify top 10 critical vulnerabilities and remediation roadmap
 - Establish vulnerability scanning across cloud infrastructure
 - Build relationships with engineering and product stakeholders
