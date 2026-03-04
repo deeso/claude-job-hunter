@@ -1,9 +1,10 @@
 # Claude Job Hunter
 
-AI-powered job search toolkit using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) slash commands. Five skills that cover the full job search lifecycle:
+AI-powered job search toolkit using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) slash commands. Six skills that cover the full job search lifecycle:
 
 - **`/should-i-apply`** — Evaluate WHETHER you should apply, with a scorecard, sentiment-driven SWOT, and deep interview prep
-- **`/interview-feedback`** — Debrief after each interview round with signal analysis, performance assessment, and next-round strategy
+- **`/mock-interview`** — Practice interview loops with researched questions, written answers, and critical feedback on content and communication
+- **`/interview-feedback`** — Debrief after each real interview round with signal analysis, performance assessment, and next-round strategy
 - **`/comp-research`** — Build an objective compensation picture: market data, leveling, peer benchmarks, geography adjustments
 - **`/offer-negotiation`** — Evaluate an offer, build negotiation strategy with scripts, and decide whether to accept, counter, or walk
 - **`/player-card`** — Generate a password-protected Cloudflare Worker site that showcases you TO a company (deployed, shareable)
@@ -36,6 +37,7 @@ ln -sf ~/claude-job-hunter/commands/should-i-apply.md ~/.claude/commands/should-
 ln -sf ~/claude-job-hunter/commands/interview-feedback.md ~/.claude/commands/interview-feedback.md
 ln -sf ~/claude-job-hunter/commands/comp-research.md ~/.claude/commands/comp-research.md
 ln -sf ~/claude-job-hunter/commands/offer-negotiation.md ~/.claude/commands/offer-negotiation.md
+ln -sf ~/claude-job-hunter/commands/mock-interview.md ~/.claude/commands/mock-interview.md
 ```
 
 ### 4. Use them
@@ -46,7 +48,10 @@ Open Claude Code and run:
 # Before applying — should I bother?
 /should-i-apply "~/resume.pdf" "Anthropic" "Security Engineer" "https://job-url.com" "~/evidence/"
 
-# After each interview round — how did it go?
+# Practice before the real thing
+/mock-interview "Anthropic" "Security Engineer" "technical"
+
+# After each real interview round — how did it go?
 /interview-feedback "Anthropic" "Security Engineer" "Jane Smith" "VP of Engineering"
 
 # Know your market value before the offer comes
@@ -83,6 +88,30 @@ evaluations/[company]-[role-slug]/
 - Interview prep with specific answer frameworks drawn from YOUR experience
 - "Questions to ask them" with what good and bad answers look like
 - Culture & values alignment map between you and the company
+
+### `/mock-interview`
+
+**Purpose:** Practice interview loops with researched questions before the real thing. Get critical feedback on both what you say and how you say it.
+
+**Usage:** `/mock-interview "company" "role" "round-type"`
+
+Argument 3 is optional. Round types: `"phone-screen"`, `"technical"`, `"behavioral"`, `"hiring-manager"`, `"cross-functional"`, `"executive"`, or `"full-loop"` (default).
+
+**How it works:**
+1. Researches the company's interview style (Glassdoor reviews, reported questions, values/leadership principles, tech stack)
+2. Builds a panel of 4-6 realistic interviewers with distinct personalities and evaluation focuses
+3. Runs each round one question at a time — you answer in writing, the agent asks follow-up probes in character
+4. After each round, provides detailed feedback before moving to the next
+
+**Feedback covers:**
+- **Content assessment** — what was strong, what was missing, specific evidence from your experience you should have included
+- **Communication assessment** — structure, conciseness, specificity, confidence signals, storytelling quality
+- **Stronger answer frameworks** — rewritten outlines using YOUR actual experience as a structural model
+- **Skills heat map** — across all rounds, where you're strong and where to focus practice
+- **Communication style report** — recurring habits to build and break, word/phrase audit
+- **Practice plan** — prioritized topics, stories to prepare (with STAR outlines from your profile), rounds to re-run
+
+Supports re-run mode: practice the same round type with fresh questions, with feedback comparing against prior attempts.
 
 ### `/interview-feedback`
 
@@ -176,7 +205,8 @@ claude-job-hunter/
 │   ├── should-i-apply.md            # /should-i-apply command
 │   ├── interview-feedback.md        # /interview-feedback command
 │   ├── comp-research.md             # /comp-research command
-│   └── offer-negotiation.md         # /offer-negotiation command
+│   ├── offer-negotiation.md         # /offer-negotiation command
+│   └── mock-interview.md            # /mock-interview command
 ├── profile/
 │   └── candidate-profile.md         # Your profile (fill this in)
 ├── resources/
@@ -197,10 +227,11 @@ claude-job-hunter/
 The commands cover the full job search lifecycle:
 
 1. **`/should-i-apply`** — Pre-application: research, SWOT analysis, interview prep
-2. **`/interview-feedback`** — During process: debrief each round, read signals, prep for next
-3. **`/comp-research`** — Pre-offer: build objective comp picture from market data
-4. **`/offer-negotiation`** — Offer stage: evaluate, strategize, negotiate with scripts
-5. **`/player-card`** — Anytime: deploy a personalized showcase site
+2. **`/mock-interview`** — Pre-interview: practice with researched questions, get feedback
+3. **`/interview-feedback`** — During process: debrief each round, read signals, prep for next
+4. **`/comp-research`** — Pre-offer: build objective comp picture from market data
+5. **`/offer-negotiation`** — Offer stage: evaluate, strategize, negotiate with scripts
+6. **`/player-card`** — Anytime: deploy a personalized showcase site
 
 Each command follows a multi-phase workflow with user confirmation between phases. Outputs accumulate in the same `evaluations/[company]-[role]/` directory, building a complete picture over time.
 
@@ -209,9 +240,10 @@ Each command follows a multi-phase workflow with user confirmation between phase
 - **Be honest in your candidate profile.** The "Honest Considerations" section makes SWOT analysis genuinely useful. Generic strengths produce generic outputs.
 - **Use the evidence directory.** The more context you give (cover letters, project docs, publications), the stronger the evidence mapping in scorecards and interview prep.
 - **Review between phases.** Both commands pause for confirmation. Add context the AI might have missed.
-- **Debrief every round.** Run `/interview-feedback` after each interview while details are fresh. The running log across rounds reveals patterns.
+- **Practice before real interviews.** Run `/mock-interview` to identify weak spots. Re-run specific round types until your answers are tight. The communication feedback is where the real value is.
+- **Debrief every round.** Run `/interview-feedback` after each real interview while details are fresh. The running log across rounds reveals patterns.
 - **Run comp research early.** `/comp-research` before the offer means you negotiate from data, not gut feelings. The research feeds directly into `/offer-negotiation`.
-- **Full lifecycle.** `/should-i-apply` → `/interview-feedback` (per round) → `/comp-research` → `/offer-negotiation` → `/player-card` if you want to send something impressive.
+- **Full lifecycle.** `/should-i-apply` → `/mock-interview` → `/interview-feedback` (per round) → `/comp-research` → `/offer-negotiation` → `/player-card` if you want to send something impressive.
 
 ## Requirements
 
