@@ -1,6 +1,6 @@
-# Job Search — Search ATS Boards & Auto-Evaluate
+# Job Search — Search ATS Boards & the Web for Matching Roles
 
-Search Ashby and Greenhouse public job board APIs for matching roles, filter across multiple dimensions, and auto-evaluate approved matches using the same pipeline as `/should-i-apply`.
+Search for matching roles across ATS job boards (Ashby, Greenhouse) and the open web. Supports three modes: ATS-only (search specific companies), web discovery (find jobs by keywords without knowing companies), and combined. Auto-evaluate approved matches using the same pipeline as `/should-i-apply`.
 
 ## Inputs
 
@@ -11,7 +11,12 @@ Parse `$ARGUMENTS` as up to three quoted strings:
 - **Second quoted string** (optional) — Comma-separated role keyword filters (e.g., `"security, platform, infrastructure"`)
 - **Third quoted string** (optional) — Profile name (e.g., `"default"`, `"security"`). See Profile Resolution below.
 
-If no arguments are provided, search all companies in the watchlist file. If no watchlist exists, create one from the template and walk the user through adding their first companies before proceeding (do NOT ask for companies as a one-off prompt — the watchlist is the persistent source of truth).
+**Search modes:**
+- **ATS mode** (companies provided via args or watchlist) — searches each company's Ashby/Greenhouse board
+- **Web discovery mode** (no companies, but role keywords provided) — searches the web for matching jobs, discovers companies automatically
+- **Combined mode** (watchlist has `## Web Search` section with `Enabled: yes`) — runs both ATS and web discovery
+
+If the first argument is empty/blank AND the second argument has role keywords, activate web discovery mode. If both are empty, use the watchlist (companies + web search config if enabled). If nothing is configured, show a clear message explaining the options.
 
 ## Setup
 
@@ -57,24 +62,29 @@ Execute these phases in order. Present findings to the user after each phase for
    - If no profile exists, tell the user to run `/build-profile` first
 3. Read the watchlist at `[WORK_DIR]/WATCHLIST.md`
    - If no watchlist exists, copy the template from `[REPO_DIR]/resources/watchlist-template.md` to `[WORK_DIR]/WATCHLIST.md`
-   - Walk the user through adding at least one company to the watchlist (name, optional board token and platform)
-   - Write their entries into the watchlist file, then continue
 4. Read the search log at `[WORK_DIR]/JOB_SEARCH_LOG.md` (if it exists) for deduplication
 5. Build the search plan by merging:
    - Companies from arguments (first quoted string, comma-separated) — if provided
    - Companies from watchlist `## Companies` section
    - Deduplicate company list
-   - If the merged list is still empty, tell the user: "No companies to search. Add companies to your watchlist at `[WORK_DIR]/WATCHLIST.md` or pass them as the first argument." Then stop.
 6. Build filter set by merging:
    - Role keywords from arguments (second quoted string, comma-separated)
    - Global filters from watchlist `## Search Filters` section
    - Per-company filter overrides from watchlist (if a company entry has its own `Filters:` line)
-7. Present the search plan to the user:
+7. Read the `## Web Search` section from the watchlist (if it exists) for web discovery config
+8. **Determine search mode:**
+   - If the merged company list is NOT empty → **ATS mode**. Also check if watchlist `## Web Search` has `Enabled: yes` — if so, use **combined mode** (ATS + web discovery).
+   - If the merged company list IS empty AND role keywords were provided (from args or watchlist filters) → **web discovery mode**
+   - If the merged company list IS empty AND no role keywords AND watchlist has `## Web Search` section with `Enabled: yes` and `Role queries:` → **web discovery mode** using those queries
+   - If the merged company list IS empty AND no role keywords AND no web search config → tell the user: "No companies or role keywords provided. Options: (1) pass role keywords: `/job-search \"\" \"security engineer\"`, (2) add companies to your watchlist, (3) enable `## Web Search` in your watchlist with role queries." Then stop.
+9. Present the search plan to the user:
 
 ```
 Job Search Plan
 
-Companies to search: [list]
+Mode: [ATS / Web Discovery / Combined]
+Companies to search: [list or "none — discovering via web search"]
+Web search queries: [list, if web discovery or combined mode]
 Role keywords: [list]
 Department keywords: [list]
 Description keywords: [list]
@@ -89,9 +99,126 @@ Previously searched: [count from log] jobs already in log
 
 ---
 
+### Phase 2a: Web Search Discovery
+
+**Skip this phase if operating in ATS-only mode (companies were provided and no web search config is active).**
+
+Use WebSearch to find job postings matching role keywords across the web. The goal is to discover companies and job URLs, then pivot to structured ATS APIs wherever possible.
+
+#### 2a-i. Construct Search Queries
+
+Build queries by combining role keywords with active filter dimensions (modality, location). For each role keyword, generate queries in three tiers:
+
+**Tier 1 — ATS site searches (highest value — these can pivot to full API data):**
+- `site:jobs.ashbyhq.com "{keyword}" {modality} {location}`
+- `site:boards.greenhouse.io "{keyword}" {modality} {location}`
+- `site:job-boards.greenhouse.io "{keyword}" {modality} {location}`
+- `site:jobs.lever.co "{keyword}" {modality} {location}`
+
+**Tier 2 — General job boards:**
+- `"{keyword}" {modality} {location} site:linkedin.com/jobs`
+- `"{keyword}" {modality} {location} site:wellfound.com`
+
+**Tier 3 — Open web career pages:**
+- `"{keyword}" careers OR jobs {modality} {location} {current_year}`
+
+Where `{modality}` and `{location}` come from active filters (omit if "any").
+
+**Query limits:** At most 4 Tier 1 queries per keyword (one per ATS platform), 2 Tier 2 per keyword, 1 Tier 3 per keyword. If 3+ role keywords, prioritize the first two for Tier 2 and 3.
+
+If the watchlist `## Web Search` section has custom `Role queries:`, use those in addition to the auto-generated queries.
+
+#### 2a-ii. Execute Searches and Classify URLs
+
+For each query, run WebSearch and collect result URLs. Deduplicate URLs across queries.
+
+**Classify each URL by pattern:**
+
+| URL Pattern | Classification | Action |
+|---|---|---|
+| `jobs.ashbyhq.com/{token}` or `jobs.ashbyhq.com/{token}/...` | Ashby | Extract `{token}` → add company to ATS list with platform `ashby` |
+| `boards.greenhouse.io/{token}/...` or `job-boards.greenhouse.io/{token}/...` | Greenhouse | Extract `{token}` → add company to ATS list with platform `greenhouse` |
+| `jobs.lever.co/{company}/...` | Lever | Add to direct-fetch list |
+| `*.myworkdayjobs.com/...` | Workday | Add to direct-fetch list |
+| `linkedin.com/jobs/view/...` | LinkedIn | Add to direct-fetch list |
+| `wellfound.com/...` | Wellfound | Add to direct-fetch list |
+| Other career page URLs | Unknown | Add to direct-fetch list |
+
+**ATS pivot is the key win:** For Ashby and Greenhouse URLs, extract the board token from the URL path. Group by token (multiple URLs from the same board = one company). These companies join the Phase 2 ATS discovery pipeline, which fetches ALL jobs from their board — not just the ones found via web search.
+
+If the watchlist `## Web Search` section has `Exclude companies:`, skip URLs whose company name or domain matches.
+
+#### 2a-iii. Fetch Direct-Fetch URLs
+
+For each URL in the direct-fetch list (non-ATS platforms), use WebFetch to retrieve the page and extract job details:
+
+```
+WebFetch(url, "Extract from this job posting: job title, company name, location(s),
+remote/hybrid/on-site, employment type, department or team, compensation/salary if shown,
+and the full job description text. Return as structured data.")
+```
+
+**Rate limiting:** Fetch at most 20 direct-fetch URLs (configurable via watchlist `Max results per query:` or default 20). Prioritize Tier 1 results, then Tier 2, then Tier 3.
+
+**Normalize each fetched job to the common schema:**
+
+| Field | Source |
+|---|---|
+| `title` | Extracted from page |
+| `location` | Extracted; `"Unknown"` if not found |
+| `secondaryLocations` | `[]` |
+| `department` | Extracted if present; `"Unknown"` if not |
+| `workplaceType` | Infer from text: `Remote` / `Hybrid` / `OnSite` / `Unknown` |
+| `employmentType` | Infer from text; default `FullTime` |
+| `description` | Full description text from page |
+| `compensation` | Extracted if visible; null otherwise |
+| `jobUrl` | The fetched URL |
+| `company` | Extracted from page |
+| `platform` | `lever`, `workday`, `wellfound`, `linkedin`, or `web` |
+| `source` | `web-search` |
+
+Discard URLs where neither a title nor company name can be extracted — note: `"Could not parse job posting at {url} — skipping."`
+
+#### 2a-iv. Merge Into Search Plan
+
+After web discovery completes:
+
+1. **ATS-discovered companies:** Add to the company list for Phase 2 with their discovered platform and board token. Skip duplicates already in the list from args/watchlist.
+2. **Direct-fetch jobs:** These skip Phase 2/3a (ATS discovery and API fetch) and enter the pipeline as pre-normalized jobs at Phase 3c (filtering).
+
+3. **Present discovery results:**
+
+```
+Web Search Discovery Results
+
+Queries executed: [N]
+Unique URLs found: [N]
+
+ATS boards discovered: [N]
+  [Company A] → Ashby (token: {token}) — will fetch full board
+  [Company B] → Greenhouse (token: {token}) — will fetch full board
+
+Direct-fetch jobs: [N]
+  [Company C] — [Title] (via Lever)
+  [Company D] — [Title] (via career page)
+
+Unparseable: [N] skipped
+
+These [N] ATS companies will be fully searched via API next.
+[N] direct-fetch jobs proceed to filtering.
+
+Continue?
+```
+
+**Confirm with user before proceeding.**
+
+---
+
 ### Phase 2: ATS Platform Discovery
 
-For each company in the search plan, determine whether they use Ashby or Greenhouse and find the board token.
+For each company in the search plan — from arguments, watchlist, AND web search discovery (Phase 2a) — determine the ATS platform and board token.
+
+**Companies from Phase 2a with a known platform and token skip the discovery steps below** and proceed directly to API fetch in Phase 3a.
 
 **Resolution order for each company:**
 
@@ -183,21 +310,24 @@ Response structure (extract from `jobs` array):
 
 #### 3b. Normalize to Common Schema
 
-Convert both API responses to a unified format for filtering:
+Convert API responses and web-discovered jobs to a unified format for filtering:
 
-| Field | Ashby Source | Greenhouse Source |
-|---|---|---|
-| `title` | `title` | `title` |
-| `location` | `location` | `location.name` |
-| `secondaryLocations` | `secondaryLocations` | — |
-| `department` | `department` + `team` | `departments[].name` |
-| `workplaceType` | `workplaceType` | Infer from `location.name` (look for "Remote", "Hybrid") |
-| `employmentType` | `employmentType` | Infer from `metadata` or title |
-| `description` | `descriptionPlain` | Strip HTML from `content` |
-| `compensation` | `compensation` | Infer from `content` if present |
-| `jobUrl` | `jobUrl` | `absolute_url` |
-| `company` | (from search plan) | (from search plan) |
-| `platform` | `ashby` | `greenhouse` |
+| Field | Ashby Source | Greenhouse Source | Web-Discovered Source |
+|---|---|---|---|
+| `title` | `title` | `title` | Extracted from page |
+| `location` | `location` | `location.name` | Extracted from page |
+| `secondaryLocations` | `secondaryLocations` | — | `[]` |
+| `department` | `department` + `team` | `departments[].name` | Extracted if present |
+| `workplaceType` | `workplaceType` | Infer from `location.name` | Infer from description |
+| `employmentType` | `employmentType` | Infer from `metadata` or title | Infer from description |
+| `description` | `descriptionPlain` | Strip HTML from `content` | Full page text |
+| `compensation` | `compensation` | Infer from `content` if present | Extracted if visible |
+| `jobUrl` | `jobUrl` | `absolute_url` | Page URL |
+| `company` | (from search plan) | (from search plan) | Extracted from page |
+| `platform` | `ashby` | `greenhouse` | `lever`, `workday`, `web`, etc. |
+| `source` | `ats-api` | `ats-api` | `web-search` or `web-search → ashby` / `web-search → greenhouse` |
+
+For web-discovered jobs that were pivoted to ATS API (found via web search, fetched via Ashby/Greenhouse API), set `source` to `web-search → {platform}`.
 
 For Greenhouse `workplaceType` inference:
 - If location contains "Remote" → `Remote`
@@ -238,13 +368,14 @@ Display filtered results as a numbered table:
 Job Search Results — [date]
 
 [N] matches found across [M] companies ([X] new, [Y] previously seen)
+Sources: [N] from ATS API, [N] from web search
 
- #  | Status | Company     | Title                  | Location        | Type   | Department
-----|--------|-------------|------------------------|-----------------|--------|----------
- 1  | NEW    | Anthropic   | Security Engineer      | SF (Remote OK)  | Full   | Security
- 2  | NEW    | Anthropic   | Platform Engineer      | NYC             | Full   | Platform
- 3  | SEEN   | Cloudflare  | Security Architect     | Remote          | Full   | Security
- 4  | NEW    | Cloudflare  | Staff Security Eng     | Austin          | Full   | Engineering
+ #  | Status | Company     | Title                  | Location        | Type   | Source
+----|--------|-------------|------------------------|-----------------|--------|--------
+ 1  | NEW    | Anthropic   | Security Engineer      | SF (Remote OK)  | Full   | web → ashby
+ 2  | NEW    | Anthropic   | Platform Engineer      | NYC             | Full   | web → ashby
+ 3  | SEEN   | Cloudflare  | Security Architect     | Remote          | Full   | ats-api
+ 4  | NEW    | StartupX    | Staff Security Eng     | Remote          | Full   | lever
 
 Filtered out: [N] jobs didn't match filters
 ```
@@ -373,18 +504,21 @@ Prepend (not append) the new run section so the most recent search is always at 
 ```markdown
 ## Search Run — [YYYY-MM-DD HH:MM]
 
+**Search mode:** [ATS / Web Discovery / Combined]
 **Search parameters:**
-- Companies: [list]
+- Companies (ATS): [list or "none"]
+- Web search queries: [list or "none"]
 - Role keywords: [list]
 - Filters: [summary of active filters]
 
 **Results:** [N] jobs scanned, [M] matches, [E] evaluated, [S] skipped
+**Sources:** [N] ATS API, [N] web search → ATS, [N] web direct
 
-| # | Company | Title | URL | Status | Verdict | Score |
-|---|---------|-------|-----|--------|---------|-------|
-| 1 | Anthropic | Security Engineer | [url] | EVALUATED | Yes | 78% |
-| 2 | Anthropic | Platform Engineer | [url] | SKIPPED | — | — |
-| 3 | Cloudflare | Security Architect | [url] | PREVIOUSLY_SEEN | — | — |
+| # | Company | Title | URL | Status | Verdict | Score | Source |
+|---|---------|-------|-----|--------|---------|-------|--------|
+| 1 | Anthropic | Security Engineer | [url] | EVALUATED | Yes | 78% | web → ashby |
+| 2 | Anthropic | Platform Engineer | [url] | SKIPPED | — | — | web → ashby |
+| 3 | Cloudflare | Security Architect | [url] | PREVIOUSLY_SEEN | — | — | ats-api |
 
 ---
 ```
@@ -404,17 +538,22 @@ Compare the current API results against previous log entries for the same compan
 
 #### 6d. Offer Watchlist Updates
 
-If any companies were discovered via WebSearch (not from the watchlist), offer to add them:
+If any companies were discovered via web search or ATS discovery (not already in the watchlist), offer to add them:
 
 ```
-Discovered ATS boards not in your watchlist:
-  - Anthropic → Ashby (token: anthropic)
-  - Cloudflare → Greenhouse (token: cloudflare)
+Discovered companies not in your watchlist:
+  - Anthropic → Ashby (token: anthropic) [found via web search]
+  - StartupX → Greenhouse (token: startupx) [found via web search]
+  - SomeCo → Lever (no bulk API — requires web search to rediscover)
 
-Add these to your watchlist? (yes/no)
+Add ATS-compatible companies to your watchlist? (yes / select / no)
 ```
 
-If yes, append the company entries to `[WORK_DIR]/WATCHLIST.md` using the watchlist format.
+- **yes** — add all ATS-compatible companies (Ashby/Greenhouse with tokens) to the watchlist
+- **select** — let the user pick which to add
+- **no** — skip
+
+Only companies with Ashby or Greenhouse boards should be added (those platforms support bulk API fetch). Lever, Workday, and custom career page companies require web search mode to rediscover — note this to the user.
 
 ---
 
@@ -425,9 +564,18 @@ Present a final summary:
 ```
 Job Search Complete — [date]
 
+Search mode:         [ATS / Web Discovery / Combined]
+
 Companies searched:  [N]
+  From watchlist:    [N]
+  From web search:   [N] (discovered)
   Successful:        [N] ([list])
   No board found:    [N] ([list])
+
+Web search:          [if applicable]
+  Queries executed:  [N]
+  ATS boards found:  [N]
+  Direct jobs found: [N]
 
 Jobs scanned:        [N]
 Matches found:       [N] (after filters)
@@ -451,7 +599,7 @@ Next steps:
   - /mock-interview "[company]" "[role]" — practice for your top match
   - /comp-research "[company]" "[role]" — check compensation before applying
   - /player-card "[company]" "[role]" — build a showcase site to send with your application
-  - Edit WATCHLIST.md to refine filters for next search
+  - Edit WATCHLIST.md to add discovered companies or refine web search queries
   - Re-run /job-search to check for new postings
 
 Search log: [path to JOB_SEARCH_LOG.md]
@@ -473,3 +621,10 @@ Before finishing, verify:
 - [ ] User has confirmation points between phases (no runaway automation)
 - [ ] All research has source URLs
 - [ ] SWOT items are specific to the candidate x company (not generic)
+- [ ] Web search queries combine keywords + filter dimensions (modality, location)
+- [ ] ATS board tokens are correctly extracted from web search URLs (Ashby, Greenhouse patterns)
+- [ ] Web-discovered Ashby/Greenhouse companies pivot to full API fetch (not just the single posting found)
+- [ ] Direct-fetch jobs have all available fields extracted; missing fields use sensible defaults
+- [ ] Source tracking (`ats-api`, `web-search`, `web-search → ashby`, etc.) is recorded for every job
+- [ ] At most 20 direct-fetch URLs processed per run (unless configured otherwise in watchlist)
+- [ ] Web-discovered ATS companies offered for watchlist addition

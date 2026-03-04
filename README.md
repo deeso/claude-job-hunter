@@ -1,10 +1,11 @@
 # Claude Job Hunter
 
-AI-powered job search toolkit using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) slash commands. Eight skills that cover the full job search lifecycle:
+AI-powered job search toolkit using [Claude Code](https://docs.anthropic.com/en/docs/claude-code) slash commands. Nine skills that cover the full job search lifecycle:
 
 - **`/build-profile`** — Generate your candidate profile from resume, web research, publications, patents, and supporting evidence
-- **`/job-search`** — Search Ashby & Greenhouse job boards, filter by role/location/modality, and auto-evaluate matches
+- **`/job-search`** — Search ATS boards and the web for matching roles, filter, and auto-evaluate matches
 - **`/should-i-apply`** — Evaluate WHETHER you should apply, with a scorecard, sentiment-driven SWOT, and deep interview prep
+- **`/skill-gap`** — Build an ideal candidate profile, benchmark your skills against it, and create a time-based development plan
 - **`/mock-interview`** — Practice interview loops with researched questions, written answers, and critical feedback on content and communication
 - **`/interview-feedback`** — Debrief after each real interview round with signal analysis, performance assessment, and next-round strategy
 - **`/comp-research`** — Build an objective compensation picture: market data, leveling, peer benchmarks, geography adjustments
@@ -87,6 +88,9 @@ Open Claude Code and run:
 # Or search all watchlist companies with no args
 /job-search
 
+# Or search the web by role keywords — no company names needed
+/job-search "" "security engineer, platform security"
+
 # Before applying — should I bother?
 /should-i-apply "~/resume.pdf" "Anthropic" "Security Engineer" "https://job-url.com" "~/evidence/"
 
@@ -101,6 +105,9 @@ Open Claude Code and run:
 
 # Offer in hand — what's the play?
 /offer-negotiation "Anthropic" "Security Engineer"
+
+# Not ready yet? Benchmark and build a development plan
+/skill-gap "Anthropic" "Staff Security Engineer" "https://job-url.com" "1 year"
 
 # Ready to send something impressive — build the card
 /player-card "Anthropic" "Security Engineer" "https://job-url.com"
@@ -138,26 +145,41 @@ Supports **update mode**: if a profile exists, merges new information and re-run
 
 ### `/job-search`
 
-**Purpose:** Search Ashby and Greenhouse public job board APIs for matching roles, filter across multiple dimensions, and auto-evaluate approved matches — batch discovery instead of one-at-a-time with `/should-i-apply`.
+**Purpose:** Search for matching roles across ATS boards (Ashby, Greenhouse) and the open web — with or without specifying companies.
 
 **Usage:** `/job-search "company1, company2" "role-keywords" "profile-name"`
 
-All arguments are optional. Falls back to your watchlist (`WATCHLIST.md`) or interactive prompts. Run with no args to search all watchlist companies.
+All arguments are optional. Three search modes:
+- **ATS mode** — specify companies, search their Ashby/Greenhouse boards
+- **Web discovery mode** — pass role keywords with no companies (`/job-search "" "security engineer"`), finds jobs across the web
+- **Combined mode** — enable `## Web Search` in your watchlist to always run both
+
+```
+# Search specific companies
+/job-search "Anthropic, Cloudflare" "security"
+
+# Search the web by keywords — no company names needed
+/job-search "" "security engineer, platform security"
+
+# Search everything in your watchlist
+/job-search
+```
 
 **How it works:**
-1. **Discovers ATS platforms** — tries Ashby and Greenhouse APIs with token variants, falls back to WebSearch for the careers page
-2. **Fetches & filters all jobs** — normalizes both API formats, applies filters (role keywords, department, location, work modality, employment type) with AND across dimensions, OR within each
-3. **Deduplicates** — checks against your search log so you only see new postings
-4. **You choose** — review the results table, preview full JDs, select which to evaluate
-5. **Auto-evaluates** — runs the full `/should-i-apply` pipeline (SCORECARD, INTERVIEW_PREP, COMPANY_INTEL) for each approved match, reusing company research across roles
-6. **Logs everything** — tracks what you've seen, evaluated, and skipped; detects closed listings
+1. **Web discovery** (if no companies) — searches the web for job postings matching your keywords, extracts company board tokens from Ashby/Greenhouse URLs to unlock full API data
+2. **Discovers ATS platforms** — tries Ashby and Greenhouse APIs with token variants, falls back to WebSearch for the careers page
+3. **Fetches & filters all jobs** — normalizes API and web-scraped results, applies filters (role keywords, department, location, work modality, employment type) with AND across dimensions, OR within each
+4. **Deduplicates** — checks against your search log so you only see new postings
+5. **You choose** — review the results table, preview full JDs, select which to evaluate
+6. **Auto-evaluates** — runs the full `/should-i-apply` pipeline (SCORECARD, INTERVIEW_PREP, COMPANY_INTEL) for each approved match, reusing company research across roles
+7. **Logs everything** — tracks what you've seen, evaluated, and skipped; detects closed listings; offers to add web-discovered companies to your watchlist
 
 **Produces:**
 - Same evaluation outputs as `/should-i-apply` for each evaluated match
 - `WATCHLIST.md` — your saved companies and filter preferences (created from template on first run)
 - `JOB_SEARCH_LOG.md` — running history of searches, matches, and statuses
 
-**Watchlist:** Edit `WATCHLIST.md` to save your target companies, board tokens, and filter preferences. Global filters apply to all companies; per-company overrides let you customize. Set platform to `auto` for automatic ATS discovery.
+**Watchlist:** Edit `WATCHLIST.md` to save your target companies, board tokens, and filter preferences. Global filters apply to all companies; per-company overrides let you customize. Set platform to `auto` for automatic ATS discovery. Enable the `## Web Search` section to discover new companies automatically via web search.
 
 ### `/should-i-apply`
 
@@ -181,6 +203,30 @@ evaluations/[company]-[role-slug]/
 - Interview prep with specific answer frameworks drawn from YOUR experience
 - "Questions to ask them" with what good and bad answers look like
 - Culture & values alignment map between you and the company
+
+### `/skill-gap`
+
+**Purpose:** Build an ideal candidate profile for a target role, benchmark your current skills against it, and create a time-based development plan to close the gaps.
+
+**Usage:** `/skill-gap "company" "role" "jd-url" "timeline" "profile-name"`
+
+Arguments 1 and 3-5 are optional. Company can be a specific name (`"Anthropic"`), a category (`"FAANG"`, `"AI startup"`), or omitted for industry-wide benchmarks. Timeline defaults to 1 year.
+
+**How it works:**
+1. **Researches the ideal candidate** — analyzes 5-10 similar JDs, career ladders, interview patterns, and LinkedIn profiles to build a market-grounded ideal profile
+2. **Benchmarks your skills** — maps your profile against the ideal, incorporating interview/mock interview performance if available (most honest signal)
+3. **Gap analysis** — categorizes gaps as quick wins (< 3 months), development priorities (3-6 months), strategic investments (6-12 months), or unrealistic (honest about what can't be closed)
+4. **Development plan** — time-blocked activities matched to your learning style and time budget: projects, courses, certifications, portfolio pieces, speaking, networking
+5. **Portfolio strategy** — defines what your GitHub, writing, and speaking profile should look like by the end of the timeline
+
+**Produces:** `SKILL_GAP.md` in the evaluation directory:
+- Ideal candidate profile (market-grounded, not generic)
+- Benchmark scorecard with gap ratings and evidence
+- Prioritized gap analysis with honest timeline feasibility
+- Time-blocked development plan with specific resources (course names, book titles, project ideas)
+- Portfolio strategy and progress tracking milestones
+
+Supports **re-run mode**: re-run to track progress, compare benchmarks over time, and adjust the plan.
 
 ### `/mock-interview`
 
@@ -304,7 +350,8 @@ claude-job-hunter/
 │   ├── interview-feedback.md        # /interview-feedback
 │   ├── comp-research.md             # /comp-research
 │   ├── offer-negotiation.md         # /offer-negotiation
-│   └── player-card.md               # /player-card
+│   ├── player-card.md               # /player-card
+│   └── skill-gap.md                 # /skill-gap
 ├── resources/                       # Research checklists and references
 ├── examples/                        # Example outputs
 └── profile/                         # Profile template (user profiles are gitignored)
@@ -329,7 +376,8 @@ claude-job-hunter/
 │       ├── INTERVIEW_LOG.md
 │       ├── COMP_RESEARCH.md
 │       ├── NEGOTIATION_STRATEGY.md
-│       └── MOCK_INTERVIEW.md
+│       ├── MOCK_INTERVIEW.md
+│       └── SKILL_GAP.md
 └── cards/                           # /player-card outputs
     └── [company]-[year]/
 ```
@@ -339,13 +387,14 @@ claude-job-hunter/
 The commands cover the full job search lifecycle:
 
 1. **`/build-profile`** — Onboarding: build your candidate profile from resume + web research
-2. **`/job-search`** — Discovery: search ATS boards, filter, and batch-evaluate matches
+2. **`/job-search`** — Discovery: search ATS boards and the web, filter, and batch-evaluate matches
 3. **`/should-i-apply`** — Pre-application: research, SWOT analysis, interview prep (single role)
-4. **`/mock-interview`** — Pre-interview: practice with researched questions, get feedback
-5. **`/interview-feedback`** — During process: debrief each round, read signals, prep for next
-6. **`/comp-research`** — Pre-offer: build objective comp picture from market data
-7. **`/offer-negotiation`** — Offer stage: evaluate, strategize, negotiate with scripts
-8. **`/player-card`** — Anytime: deploy a personalized showcase site
+4. **`/skill-gap`** — Development: benchmark skills against ideal, build a time-based plan to close gaps
+5. **`/mock-interview`** — Pre-interview: practice with researched questions, get feedback
+6. **`/interview-feedback`** — During process: debrief each round, read signals, prep for next
+7. **`/comp-research`** — Pre-offer: build objective comp picture from market data
+8. **`/offer-negotiation`** — Offer stage: evaluate, strategize, negotiate with scripts
+9. **`/player-card`** — Anytime: deploy a personalized showcase site
 
 Each command follows a multi-phase workflow with user confirmation between phases. Outputs accumulate in the same `evaluations/[company]-[role]/` directory, building a complete picture over time.
 
@@ -420,7 +469,8 @@ If you created your profile before multi-profile support, running `/setup` again
 - **Practice before real interviews.** Run `/mock-interview` to identify weak spots. Re-run specific round types until your answers are tight. The communication feedback is where the real value is.
 - **Debrief every round.** Run `/interview-feedback` after each real interview while details are fresh. The running log across rounds reveals patterns.
 - **Run comp research early.** `/comp-research` before the offer means you negotiate from data, not gut feelings. The research feeds directly into `/offer-negotiation`.
-- **Full lifecycle.** `/build-profile` → `/job-search` or `/should-i-apply` → `/mock-interview` → `/interview-feedback` (per round) → `/comp-research` → `/offer-negotiation` → `/player-card` if you want to send something impressive.
+- **Not ready yet?** Run `/skill-gap` to benchmark your skills against a target role and build a development plan. Re-run periodically to track progress.
+- **Full lifecycle.** `/build-profile` → `/job-search` or `/should-i-apply` → `/skill-gap` (if gaps found) → `/mock-interview` → `/interview-feedback` (per round) → `/comp-research` → `/offer-negotiation` → `/player-card` if you want to send something impressive.
 
 ## Requirements
 

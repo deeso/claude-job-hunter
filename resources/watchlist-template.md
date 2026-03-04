@@ -30,3 +30,14 @@ Per-company filter overrides (optional — replaces global for this company only
 - **Work modality:**
 
 -->
+
+## Web Search
+
+Web-based job discovery. When enabled, `/job-search` searches the web for matching jobs in addition to (or instead of) searching company ATS boards. This lets you find roles without specifying companies.
+
+**Enabled:** no
+**Role queries:** (search phrases, e.g., "staff security engineer AI", "platform security remote")
+**Include ATS sites:** yes
+**Include general boards:** yes
+**Exclude companies:** (companies to skip in web results)
+**Max results per query:** 20

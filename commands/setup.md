@@ -126,6 +126,7 @@ Commands to install:
 - `comp-research.md` — `/comp-research`
 - `offer-negotiation.md` — `/offer-negotiation`
 - `player-card.md` — `/player-card`
+- `skill-gap.md` — `/skill-gap`
 - `uninstall.md` — `/uninstall`
 
 ### Step 6: Verify installation
@@ -161,13 +162,14 @@ Config:         ~/.claude/.claude-job-hunter.conf
 
 Installed commands:
   /build-profile        → Build your candidate profile from resume + evidence
-  /job-search           → Search ATS boards and auto-evaluate matches
+  /job-search           → Search ATS boards and the web for matching roles
   /should-i-apply       → Evaluate whether to apply (scorecard, SWOT, interview prep)
   /mock-interview       → Practice interview loops with feedback
   /interview-feedback   → Debrief after real interviews
   /comp-research        → Market compensation analysis
   /offer-negotiation    → Offer evaluation and negotiation strategy
   /player-card          → Deploy a candidate showcase site
+  /skill-gap            → Benchmark skills and build a development plan
   /uninstall            → Remove all Claude Job Hunter skills
 
 Next steps:
