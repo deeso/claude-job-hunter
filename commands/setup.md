@@ -112,6 +112,7 @@ Commands to install:
 - `comp-research.md` — `/comp-research`
 - `offer-negotiation.md` — `/offer-negotiation`
 - `player-card.md` — `/player-card`
+- `uninstall.md` — `/uninstall`
 
 ### Step 6: Verify installation
 
@@ -150,6 +151,7 @@ Installed commands:
   /comp-research        → Market compensation analysis
   /offer-negotiation    → Offer evaluation and negotiation strategy
   /player-card          → Deploy a candidate showcase site
+  /uninstall            → Remove all Claude Job Hunter skills
 
 Next steps:
   1. Run /build-profile to create your candidate profile

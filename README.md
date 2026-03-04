@@ -39,7 +39,9 @@ Then open Claude Code and run:
 /setup "~/job-search"
 ```
 
-This symlinks all 7 skills into `~/.claude/commands/`, creates output directories, and writes a config file (`~/.claude/.claude-job-hunter.conf`) so all skills know where to find your data. You only need to do this once (or again after pulling updates that add new commands).
+This symlinks all skills into `~/.claude/commands/`, creates output directories, and writes a config file (`~/.claude/.claude-job-hunter.conf`) so all skills know where to find your data. You only need to do this once (or again after pulling updates that add new commands).
+
+To remove everything later, run `/uninstall` — it removes symlinks and config but leaves your personal data intact.
 
 Using a custom working directory keeps your personal data (profile, evaluations, cards) separate from the repo — useful if you want to keep the repo clean for `git pull` updates.
 
@@ -55,6 +57,7 @@ ln -sf ~/claude-job-hunter/commands/interview-feedback.md ~/.claude/commands/int
 ln -sf ~/claude-job-hunter/commands/comp-research.md ~/.claude/commands/comp-research.md
 ln -sf ~/claude-job-hunter/commands/offer-negotiation.md ~/.claude/commands/offer-negotiation.md
 ln -sf ~/claude-job-hunter/commands/player-card.md ~/.claude/commands/player-card.md
+ln -sf ~/claude-job-hunter/commands/uninstall.md ~/.claude/commands/uninstall.md
 ```
 </details>
 
@@ -262,6 +265,7 @@ Reads prior skills' outputs (`COMP_RESEARCH.md`, `INTERVIEW_LOG.md`, `SCORECARD.
 claude-job-hunter/
 ├── commands/                        # Claude Code slash commands
 │   ├── setup.md                     # /setup — installs everything
+│   ├── uninstall.md                 # /uninstall — removes everything
 │   ├── build-profile.md             # /build-profile
 │   ├── should-i-apply.md            # /should-i-apply
 │   ├── mock-interview.md            # /mock-interview
